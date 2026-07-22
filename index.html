@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- franco30_v2.html (deploy: index.html) · v2: sheet_endpoint conectado · Cumple 30 de Franco -->
+<!-- franco30_v3.html (deploy: index.html) · v3: grito de gol precargado y sin delay, jugada mas rapida · Cumple 30 de Franco -->
 <!-- ============================================================
      PLANTILLA DE INVITACIÓN DIGITAL · TEMA "CAMPEONES" (fútbol)
      v1 · Sistema parametrizado: TODO lo que se personaliza por
@@ -801,10 +801,21 @@ p{line-height:1.6}
     src.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
     src.start();
   }
+  // Precarga del grito: se descarga al abrir la página, no en el momento del gol
+  var golAudio = new Audio('/gol.mp3');
+  golAudio.preload = 'auto';
+  golAudio.volume = 0.85;
+  function desbloquearGol(){
+    // reproducir muteado DENTRO del gesto: desbloquea iOS y termina de bufferizar
+    try { golAudio.muted = true; golAudio.play().catch(function(){}); } catch(e){}
+  }
   function gritoDeGol(){
-    var a = new Audio('/gol.mp3');
-    a.volume = 0.8;
-    a.play().catch(function(){ hinchadaSintetica(); });
+    try {
+      golAudio.pause();
+      golAudio.currentTime = 0;
+      golAudio.muted = false;
+      golAudio.play().catch(function(){ hinchadaSintetica(); });
+    } catch(e){ hinchadaSintetica(); }
   }
 
   /* ---- Confirmación: cartel + registro + WhatsApp ---- */
@@ -822,15 +833,16 @@ p{line-height:1.6}
   btnConfirm.addEventListener('click', function(ev){
     ev.preventDefault();
     prepararAudio();               // dentro del gesto (requisito iOS)
+    desbloquearGol();
     registrarConfirmacion();
     cmNow.href = hrefConfirm;
     golOverlay.classList.add('on');
     // Timeline del tiro libre
-    setTimeout(function(){ document.getElementById('golDiez').classList.add('patea'); }, 500);
+    setTimeout(function(){ document.getElementById('golDiez').classList.add('patea'); }, 250);
     setTimeout(function(){
       document.getElementById('golBall').classList.add('vuela');
       document.getElementById('golBarrera').classList.add('salta');
-    }, 900);
+    }, 650);
     setTimeout(function(){
       document.getElementById('golArco').classList.add('tiembla');
       document.getElementById('golTexto').classList.add('show');
@@ -838,12 +850,12 @@ p{line-height:1.6}
       var arco = document.getElementById('golArco').getBoundingClientRect();
       burstSparkles(arco.right - 30, arco.top + 20);
       burstSparkles(window.innerWidth/2, window.innerHeight*0.3);
-    }, 1800);
+    }, 1550);
     setTimeout(function(){
       confirmModal.hidden = false;
       requestAnimationFrame(function(){ confirmModal.classList.add('show'); });
-    }, 3400);
-    setTimeout(function(){ window.location.href = hrefConfirm; }, 7400);
+    }, 3100);
+    setTimeout(function(){ window.location.href = hrefConfirm; }, 7100);
   });
 
   /* ---- Countdown ---- */
